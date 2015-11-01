@@ -92,7 +92,6 @@ def preserve_tree(node):
     _preserve()
     preserved = ''.join(preserved)
     encoded_tree_size = pad_to_full_byte(bit_string_for(len(preserved)), byte_length=16)
-    print int(encoded_tree_size,2)
     return encoded_tree_size + preserved
 
 
