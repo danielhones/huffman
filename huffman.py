@@ -1,9 +1,9 @@
+from utilities import pack_data, pad_to_full_byte, bit_string_for
 from collections import defaultdict
 from bisect import bisect_left
 import sys
 
 
-BYTE_LENGTH = 8
 LEFT = '0'
 RIGHT = '1'
 
@@ -76,50 +76,32 @@ def encode_data(filepath, encoding):
     return ''.join(encoded_data)
 
 
-def pack_data(data):
-    """
-    Data should be a string of 1's and 0's.  As it stands now, this function will produce some junk on the last byte if
-    the length of data is not divisible by 8.
-    TODO: Find a way to deal with that junk data at the end
-    """
-    packed_data = []
-    for i in range(0, len(data), 8):
-        bit_string = data[i:i+8]
-        next_char = chr(int(bit_string, 2))
-        packed_data.append(next_char)
-    return ''.join(packed_data)
-
-
-def pad_to_full_byte(incomplete_byte):
-    # Add leading 0's to make it a full byte
-    full_byte = '0' * (BYTE_LENGTH - len(incomplete_byte)) + incomplete_byte
-    return full_byte
-
-
-def binary_for(char):
-    return str(bin(ord(char)))[2:]
-
-
 def preserve_tree(node):
-    # TODO: this could probably be a method on HuffmanTree, but I don't know if it should be
+    # TODO: this could be a method on HuffmanTree, but I don't know if it should be
     preserved = []
-    if node.is_leaf:
-        preserved.append('1')
-        preserved.append(pad_to_full_byte(binary_for(node.char)))
-    else:
-        preserved.append('0')
-        preserved.append(preserve_tree(node.left_child))
-        preserved.append(preserve_tree(node.right_child))
-    return ''.join(preserved)
+
+    def _preserve(node=node):
+        if node.is_leaf:
+            preserved.append('1')
+            preserved.append(pad_to_full_byte(bit_string_for(node.char)))
+        else:
+            preserved.append('0')
+            _preserve(node.left_child)
+            _preserve(node.right_child)
+
+    _preserve()
+    preserved = ''.join(preserved)
+    encoded_tree_size = pad_to_full_byte(bit_string_for(len(preserved)), byte_length=16)
+    print int(encoded_tree_size,2)
+    return encoded_tree_size + preserved
 
 
 def huffman(inputfile, outputfile):
     counts = count_chars(inputfile)
     tree = build_tree(counts)
-    encoded_data = tree.encode_data(inputfile)
+    encoded_data = preserve_tree(tree) + tree.encode_data(inputfile)
 
     with open(outputfile, 'wb') as f:
-        f.write(pack_data(preserve_tree(tree)))
         f.write(pack_data(encoded_data))
 
 
