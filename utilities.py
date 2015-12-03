@@ -1,22 +1,6 @@
 BYTE_LENGTH = 8
 
 
-# Had a problem getting this to work right, not sure why:
-'''
-def scan(string):
-    """
-    Return a generator that yields 'size' characters at a time from the string until the string is exhausted
-    """
-    index = 0
-    sub_string = None
-    while index < len(string):
-        size = yield sub_string
-        sub_string = string[index:index + size]
-        index += size
-'''
-
-
-# So we'll do it a simple way instead
 def scan(string):
     return (i for i in string)
 
